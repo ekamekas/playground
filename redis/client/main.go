@@ -15,17 +15,18 @@ func main() {
     conn, error := net.Dial(SERVER_TYPE, SERVER_HOST + ":" + SERVER_PORT)
 
     if(nil != error) {
-        fmt.Println("failed to accept incoming connection")
+        fmt.Println("failed to accept incoming connection\n")
         return
     }
 
     process(conn)
+    process(conn)
+    process(conn)
 
+    conn.Close()
 }
 
 func process(conn net.Conn) {
-    defer conn.Close()
-
     _, error := conn.Write([]byte("PING"))
 
     if(nil != error) {
@@ -44,5 +45,5 @@ func process(conn net.Conn) {
 
     data := string(buffer[:size])
 
-    fmt.Printf("[CONN] received data: %s", data)
+    fmt.Printf("[CONN] received data: %s\n", data)
 }

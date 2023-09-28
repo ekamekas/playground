@@ -31,7 +31,6 @@ func main() {
         }
 
         process(connection)
-
     }
 }
 
@@ -40,20 +39,23 @@ func process(conn net.Conn) {
 
     defer conn.Close()
     defer fmt.Printf("[CONN] closing connection from %s\n", conn.RemoteAddr())
+    
+    for {
+        buffer := make([]byte, 1024)
 
-    buffer := make([]byte, 1024)
+        size, error := conn.Read(buffer)
 
-    size, error := conn.Read(buffer)
+        if(nil != error && "EOF" == error.Error()) {
+            break
+        } else if(nil != error) {
+            fmt.Printf("[CONN] failed to read data. Cause: %s\n", error.Error())
+            break
+        }
 
+        data := string(buffer[:size])     
 
-    if(nil != error) {
-        fmt.Printf("[CONN] failed to read data. Cause: %s\n", error.Error())
-        return
+        fmt.Printf("[CONN] received data: %s\n", data)
+
+        conn.Write([]byte("PONG"))
     }
-
-    data := string(buffer[:size])     
-
-    fmt.Printf("[CONN] received data: %s\n", data)
-
-    conn.Write([]byte("PONG"))
 }
