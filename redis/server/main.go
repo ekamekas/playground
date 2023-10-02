@@ -3,6 +3,7 @@ package main
 import (
     "fmt"
     "net"
+    "redis/protocol"
 )
 
 const (
@@ -41,9 +42,9 @@ func process(conn net.Conn) {
     defer fmt.Printf("[CONN] closing connection from %s\n", conn.RemoteAddr())
     
     for {
-        buffer := make([]byte, 1024)
+        buffer := make([]byte, protocol.MESSAGE_MAX)
 
-        size, error := conn.Read(buffer)
+        _, error := conn.Read(buffer)
 
         if(nil != error && "EOF" == error.Error()) {
             break
@@ -52,10 +53,12 @@ func process(conn net.Conn) {
             break
         }
 
-        data := string(buffer[:size])     
+        deserialized, _ := protocol.Deserialize(buffer)
 
-        fmt.Printf("[CONN] received data: %s\n", data)
+        fmt.Printf("[CONN] received data: %s\n", deserialized)
 
-        conn.Write([]byte("PONG"))
+        serialized, _ := protocol.Serialize([]string{ "PONG" })
+
+        conn.Write(serialized)
     }
 }

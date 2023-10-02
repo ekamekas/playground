@@ -3,6 +3,7 @@ package main
 import (
     "fmt"
     "net"
+    "redis/protocol"
 )
 
 const (
@@ -20,30 +21,30 @@ func main() {
     }
 
     process(conn)
-    process(conn)
-    process(conn)
 
     conn.Close()
 }
 
 func process(conn net.Conn) {
-    _, error := conn.Write([]byte("PING"))
+    serialized, _ := protocol.Serialize([]string{ "PING" })
+
+    _, error := conn.Write(serialized)
 
     if(nil != error) {
         fmt.Printf("[CONN] failed to write data. Cause: %s\n", error.Error())
         return
     }
 
-    buffer := make([]byte, 1024)
+    buffer := make([]byte, protocol.MESSAGE_MAX)
 
-    size, error := conn.Read(buffer)
+    _, error = conn.Read(buffer)
 
     if(nil != error) {
         fmt.Printf("[CONN] failed to read data. Cause: %s\n", error.Error())
         return
     }
 
-    data := string(buffer[:size])
+    deserialized, _ := protocol.Deserialize(buffer)
 
-    fmt.Printf("[CONN] received data: %s\n", data)
+    fmt.Printf("[CONN] received data: %s\n", deserialized)
 }
